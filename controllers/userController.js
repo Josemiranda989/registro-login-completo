@@ -14,11 +14,13 @@ const controller = {
 	},
 	processRegister: async (req, res) => {
 		const resultValidation = validationResult(req);
+		let countries = await db.Country.findAll()
 
 		if (resultValidation.errors.length > 0) {
 			return res.render('userRegisterForm', {
 				errors: resultValidation.mapped(),
-				oldData: req.body
+				oldData: req.body,
+				countries
 			});
 		}
 
@@ -32,7 +34,8 @@ const controller = {
 						msg: 'Este email ya está registrado'
 					}
 				},
-				oldData: req.body
+				oldData: req.body,
+				countries
 			});
 		}
 		console.log(req.body);
@@ -50,7 +53,16 @@ const controller = {
 		return res.render('userLoginForm');
 	},
 	loginProcess: async (req, res) => {
-		let userToLogin = await db.User.findOne({ where: { email: req.body.email } })
+		let userToLogin = await db.User.findOne({
+			where: { email: req.body.email },
+			include: [
+				{
+					model: db.Country,
+					as: 'country', // Alias definido en la asociación en el modelo User
+				},
+			],
+			// raw: true
+		})
 		// let userToLogin = User.findByField('email', req.body.email);
 
 		if (userToLogin) {

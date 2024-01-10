@@ -54,13 +54,13 @@
 								<div class="col-md-6 my-1">
 									<div class="form-group">
 										<label><b>País de nacimiento:</b></label>
-										<select name="country"
+										<select name="countryId"
 											class="form-select <%= locals.errors && errors.country ? 'is-invalid' : null %>">
 											<option value="">Elegí un país</option>
 
 											<% for (const oneCountry of countries) { %>
 												<option value="<%= oneCountry.id %>" <%=locals.oldData &&
-													(oneCountry===oldData.country) ? 'selected' : null %>
+													(oneCountry.name===oldData.country) ? 'selected' : null %>
 													> <%= oneCountry.name %>
 												</option>
 												<% } %>
