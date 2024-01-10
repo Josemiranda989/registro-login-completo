@@ -3,13 +3,16 @@ const {
 	validationResult
 } = require('express-validator');
 
-const User = require('../models/User');
+const db = require('../database/models')
+
+// const User = require('../models/User');
 
 const controller = {
-	register: (req, res) => {
-		return res.render('userRegisterForm');
+	register: async (req, res) => {
+		const countries = await db.Country.findAll()
+		return res.render('userRegisterForm', { countries });
 	},
-	processRegister: (req, res) => {
+	processRegister: async (req, res) => {
 		const resultValidation = validationResult(req);
 
 		if (resultValidation.errors.length > 0) {
@@ -19,7 +22,8 @@ const controller = {
 			});
 		}
 
-		let userInDB = User.findByField('email', req.body.email);
+		let userInDB = await db.User.findOne({ where: { email: req.body.email } })
+		// let userInDB = User.findByField('email', req.body.email);
 
 		if (userInDB) {
 			return res.render('userRegisterForm', {
@@ -31,35 +35,36 @@ const controller = {
 				oldData: req.body
 			});
 		}
-
+		console.log(req.body);
 		let userToCreate = {
 			...req.body,
 			password: bcryptjs.hashSync(req.body.password, 10),
-			avatar: req.file.filename
+			avatar: req.file?.filename || 'default-profile.png'
 		}
 
-		let userCreated = User.create(userToCreate);
+		await db.User.create(userToCreate);
 
 		return res.redirect('/user/login');
 	},
 	login: (req, res) => {
 		return res.render('userLoginForm');
 	},
-	loginProcess: (req, res) => {
-		let userToLogin = User.findByField('email', req.body.email);
-		
-		if(userToLogin) {
+	loginProcess: async (req, res) => {
+		let userToLogin = await db.User.findOne({ where: { email: req.body.email } })
+		// let userToLogin = User.findByField('email', req.body.email);
+
+		if (userToLogin) {
 			let isOkThePassword = bcryptjs.compareSync(req.body.password, userToLogin.password);
 			if (isOkThePassword) {
 				delete userToLogin.password;
 				req.session.userLogged = userToLogin;
 
-				if(req.body.remember_user) {
+				if (req.body.remember_user) {
 					res.cookie('userEmail', req.body.email, { maxAge: (1000 * 60) * 60 })
 				}
 
 				return res.redirect('/user/profile');
-			} 
+			}
 			return res.render('userLoginForm', {
 				errors: {
 					email: {
