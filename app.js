@@ -1,6 +1,9 @@
 const express = require('express');
 const session = require('express-session');
 const cookies = require('cookie-parser');
+const db = require('./database/models')
+
+
 
 const app = express();
 
@@ -19,7 +22,11 @@ app.use(userLoggedMiddleware);
 app.use(express.urlencoded({ extended: false }));
 
 app.use(express.static('./public'));
-app.listen(3000, () => console.log('Servidor levantado en el puerto 3000'));
+app.listen(3000, async () => {
+	let users = await db.User.findAll()
+	console.log(users);
+	console.log('Servidor levantado en el puerto 3000')
+});
 
 // Template Engine
 app.set('view engine', 'ejs');
